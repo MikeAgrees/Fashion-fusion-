@@ -1,0 +1,122 @@
+{% include 'header.html' %}
+
+<div id="main-content">
+    <h2>Add New Product</h2>
+    <div id="success-message" style="
+        display: none; 
+        color:white; 
+        text-align:center;
+        width: 520px;
+        margin:10px auto;
+        ">
+        Product Added Successfully!!
+    </div>
+    <div id="error-message" style="
+        display: none; 
+        color:white; 
+        text-align:center; 
+        width: 400px;
+        margin:0 auto;
+        
+        ">
+        Can't Add Product; There is some error. 
+    </div>
+    <form id="product-form" class="post-form" method="post" enctype="multipart/form-data">
+        {%csrf_token%}
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" name="p_name" autofocus required/>
+        </div>
+        <div class="form-group">
+            <label>Price </label>
+            <input type="number" name="p_price" required/>
+        </div>
+        <div class="form-group">
+            <label>Picture</label>
+            <input type='file' name="p_image" required>
+        </div>
+        <input class="submit" type="submit" value="Save"  />
+    </form>
+</div>
+</div>
+{% comment %} <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    document.getElementById("product-form").addEventListener('submit', (event) => {
+        event.preventDefault(); // Prevent default form submission
+        
+        const productName = document.querySelector('input[name="p_name"]').value;
+        const productPrice = document.querySelector('input[name="p_price"]').value;
+        const productImage = document.querySelector('input[name="p_image"]').files[0].name;
+        console.log(productImage);
+        // Construct JSON object
+        const formData = {
+            p_name: productName,
+            p_price: productPrice,
+            p_image: productImage  
+        };
+    
+        // Send form data to server using Fetch API
+        fetch('/add/', {
+            method: 'POST',
+            body: JSON.stringify(formData),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json(); // Assuming the server returns JSON
+            } else {
+                throw new Error('Error in request');
+            }
+        })
+        .then(data => {
+            // Process the response data
+            console.log(data);
+            // Display success message
+            $("#success-message").text("Product added successfully!").slideDown();
+            // Hide error message if shown
+            $("#error-message").slideUp();
+        })
+        .catch(error => {
+            // Handle errors
+            console.error('Error:', error);
+            // Display error message
+            $("#error-message").text("Error occurred while adding product.").slideDown();
+            // Hide success message if shown
+            $("#success-message").slideUp();
+        });
+    });
+</script> {% endcomment %}
+<script>
+    // Parse URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const error = params.get('error');
+
+    // Do something based on the success value
+    if (success === 'True') {
+        // Success task
+        const successMsg = document.getElementById("success-message");
+        successMsg.style.display = 'block';
+        successMsg.style.background = 'lightgreen';
+
+        const errorMsg = document.getElementById("error-message");
+        errorMsg.style.display = 'none';
+    } else if (error === 'True') {
+        // Error task
+        const errorMsg = document.getElementById("error-message");
+        errorMsg.style.display = 'block';
+        errorMsg.style.background = 'red';
+
+        const successMsg = document.getElementById("success-message");
+        successMsg.style.display = 'none';
+    } else {
+        // Handle unexpected or missing success value
+        console.error('Unexpected or missing success value:', success);
+    }
+</script>
+
+</body>
+</html>

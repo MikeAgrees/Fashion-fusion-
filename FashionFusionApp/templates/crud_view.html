@@ -1,0 +1,33 @@
+{% include 'header.html' %}
+
+<div id="main-content">
+    <h2>All Records</h2>
+    <table cellpadding="7px">
+        <thead>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Image Path</th>
+            <th>Actions</th>
+        </thead>
+        {%if stocks %}
+        <tbody>
+            {%for stock in stocks%}   
+            <tr style="text-align:center;">
+                <td>{{stock.id}} </td>
+                <td>{{stock.name}} </td>
+                <td>{{stock.price}} </td>
+                <td>{{stock.image.url}} </td>
+                <td>
+                    <a href='/edit/'>Edit</a>
+                    <a href='/delete-inline/'>Delete</a>
+                </td>
+            </tr>  
+            {%endfor%}
+        </tbody>
+        {%endif%}
+    </table>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,185 @@
+{%extends "index.html"%}
+{%block content%}
+    <style>
+        span.qtybtn, .fa-close, .update_cart_btn:hover(
+            pointer: cursor;
+        )
+    </style>
+
+    <!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb__text">
+                        <h4>Shopping Cart</h4>
+                        <div class="breadcrumb__links">
+                            <a >Home</a>
+                            <a >Shop</a>
+                            <span>Shopping Cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Shopping Cart Section Begin -->
+    <section class="shopping-cart spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        {%if user_cart_products%}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in user_cart_products %}
+                                    <tr>
+                                        <td class="product__cart__item">
+                                            <div class="product__cart__item__pic">
+                                                <img src="{{ product.imagePath }}" style="width: 200px; height: 100px;" alt="">
+                                            </div>
+                                            <div class="product__cart__item__text">
+                                                <h6>{{ product.productName }}</h6>
+                                                <h5 class="base-price">{{ product.productPrice }}</h5>
+                                            </div>
+                                        </td>
+                                        <td class="quantity__item">
+                                            <div class="quantity">
+                                                <div class="pro-qty-2">
+                                                    <span data-product-id="{{ product.id }}" class="dec qtybtn"> &lt; </span>
+                                                    <input type="text" value="1" readonly>
+                                                    <span data-product-id="{{ product.id }}" class="inc qtybtn"> &gt; </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="cart__price">{{ product.productPrice }}</td>
+                                        <td class="cart__close" data-product-id="{{ product.id }}" ><i class="fa fa-close"></i></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        
+                        {%endif%}
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a href="/">Continue Shopping</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn update__btn">
+                                <a class="update_cart_btn" role="button"><i class="fa fa-spinner"></i> Update cart</a>
+                                    
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/checkout" class="primary-btn">Proceed to checkout</a>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+    <!-- Shopping Cart Section End -->
+
+    <script>
+        var productId=[];
+        // Add click event to each qtybtn button
+        document.querySelectorAll('.qtybtn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                // Determine if the clicked button is increment or decrement
+                var isIncrement = this.classList.contains('inc');
+                var productId =  parseInt( this.getAttribute('data-product-id'),10 )
+                
+                // Find the input element
+                var input = isIncrement ? this.previousElementSibling : this.nextElementSibling;
+                // Get the current value and adjust it based on the button type
+                var value = parseInt(input.value, 10);
+                
+                if (isIncrement) {
+                    // Increment the value
+                    input.value = value + 1;
+                } else {
+                    // Decrement the value, but prevent it from going below 1
+                    if (value > 1) {
+                        input.value = value - 1;
+                    }
+                }
+        
+                // Get the new quantity
+                var newQuantity = parseInt(input.value, 10);
+                
+                // Find the base price element
+                var basePriceElement = this.closest('tr').querySelector('.base-price');
+                
+                // Get the base price
+                var basePrice = parseFloat(basePriceElement.textContent);
+                
+                // Calculate the new total price
+                var newTotalPrice = (basePrice * newQuantity).toFixed(2);
+                
+                // Update the total price element
+                var totalPriceElement = this.closest('tr').querySelector('.cart__price');
+                totalPriceElement.textContent = newTotalPrice;
+        
+                // Execute the fetch request
+                fetch("/updateCart/", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token
+                    },
+                    body: JSON.stringify({ 
+                        productId : productId, 
+                        newQuantity: newQuantity,
+                        newTotalPrice: newTotalPrice
+                    })
+                })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error(error));
+            });
+        });
+        
+        // Add click event to each cart__close button
+        document.querySelectorAll('.cart__close').forEach(function(button) {
+
+            button.addEventListener('click', function() {
+                // Find the row to be deleted
+                var row = this.closest('tr');
+                // Get the product ID
+                productId.push( parseInt( this.getAttribute('data-product-id'),10 ) );
+                // Remove the row from the DOM
+                row.remove();
+                console.log(productId);
+                }); 
+        });
+        document.querySelector(".update_cart_btn").addEventListener('click',()=>{
+            fetch('/remove-from-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token
+                },
+                body: JSON.stringify({ productId: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+{%endblock%}
